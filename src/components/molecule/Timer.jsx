@@ -1,19 +1,16 @@
-import { useEffect, useState } from 'react';
-import { calculateGameDuration } from '../../utils';
+import { useTimerStore } from '../../stores/useTimerStore';
+import { formatDuration } from '../../utils';
 import StatsCard from './StatsCard';
 
-function Timer({ startedAt, endedAt }) {
-  const [duration, setDuration] = useState('00:00');
+function Timer({ duration, isActivePlayer }) {
+  const activePlayerduration = useTimerStore(state => {
+    if (isActivePlayer) {
+      return state.activePlayerDuration;
+    }
+    return null;
+  });
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDuration(calculateGameDuration(startedAt, endedAt));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [startedAt, endedAt]);
-
-  return <StatsCard label="Timer" value={duration} />;
+  return <StatsCard label="Timer" value={formatDuration(activePlayerduration || duration)} />;
 }
 
 export default Timer;

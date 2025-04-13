@@ -6,7 +6,7 @@ function BoardCard({ card, handleCardClick }) {
     <div className={`board-card ${matched} ${flipped}`} onClick={() => handleCardClick(card)}>
       <div
         className="board-card-front"
-        style={{ backgroundImage: card.illusPathName ? `url(/illustrations/${card.illusPathName})` : null }}
+        style={{ backgroundImage: card.illusPath ? `url(${card.illusPath})` : null }}
       ></div>
       <div className="board-card-back"></div>
     </div>

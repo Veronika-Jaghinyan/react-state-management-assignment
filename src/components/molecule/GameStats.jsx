@@ -1,14 +1,19 @@
-import { calculateAccuracy } from '../../utils';
+import { usePlayersStore } from '../../stores/usePlayersStore.js';
+import { calculateAccuracy } from '../../utils/index.js';
 import StatsCard from './StatsCard';
-import Timer from './Timer';
+import Timer from './Timer.jsx';
 
-function GameStats({ stats }) {
+function GameStats({ playerIndex }) {
+  const activePlayer = usePlayersStore(state => state.activePlayer);
+  const player = usePlayersStore(state => state.players[playerIndex]);
+
   return (
-    <div className="game-stats">
-      <Timer label="Time" startedAt={stats.startedAt} endedAt={stats.endedAt} />
-      <StatsCard label="Moves" value={stats.moves} />
-      <StatsCard label="Misses" value={stats.misses} />
-      <StatsCard label="Accuracy" value={`${calculateAccuracy(stats.matchedCards, stats.moves)}%`} />
+    <div key={player.name} className={`game-stats ${playerIndex === activePlayer ? 'active' : ''}`}>
+      <div className={`player-name `}>{player.name}</div>
+      <Timer duration={player.duration} isActivePlayer={playerIndex === activePlayer} />
+      <StatsCard label="Score" value={player.score} />
+      <StatsCard label="Moves" value={player.moves} />
+      <StatsCard label="Accuracy" value={`${calculateAccuracy(player.score, player.moves)}%`} />
     </div>
   );
 }

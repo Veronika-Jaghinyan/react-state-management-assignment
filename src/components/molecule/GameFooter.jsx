@@ -1,10 +1,10 @@
 import Button from '../atom/Button';
 
-function GameFooter({ handleGameRestart, handleLevelChange }) {
+function GameFooter({ handleGameRestart, handleNewGame }) {
   return (
     <div className="game-footer">
-      <Button className="primary-btn" onClick={handleGameRestart} name="Restart" />
-      <Button className="primary-btn" onClick={handleLevelChange} name="Change level" />
+      <Button onClick={handleGameRestart} name="Restart the game" />
+      <Button onClick={handleNewGame} name="New game" />
     </div>
   );
 }

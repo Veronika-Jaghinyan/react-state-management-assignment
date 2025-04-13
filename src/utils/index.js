@@ -1,6 +1,6 @@
 function Card(id, illus) {
   this.id = id;
-  this.illusPathName = illus;
+  this.illusPath = illus;
   this.flipped = false;
   this.matched = false;
   this.flippedCount = 0;
@@ -15,18 +15,7 @@ export const suffleCards = cards => {
   return cards;
 };
 
-export const setUpCards = pairsN => {
-  const illustrations = [];
-  const randomIdsSet = new Set();
-
-  while (illustrations.length < pairsN) {
-    const randomId = Math.floor(Math.random() * 32) + 1;
-    if (!randomIdsSet.has(randomId)) {
-      randomIdsSet.add(randomId);
-      illustrations.push(`illus-${randomId}.svg`);
-    }
-  }
-
+export const setUpCards = illustrations => {
   const cards = [...illustrations, ...illustrations].map((illus, index) => {
     return new Card(index, illus);
   });
@@ -34,11 +23,15 @@ export const setUpCards = pairsN => {
   return suffleCards(cards);
 };
 
-export const calculateGameDuration = (startDate, endDate = null) => {
+export const calculateGameDuration = (startDate, initDuration = 0) => {
   const start = new Date(startDate).getTime();
-  const now = endDate ? new Date(endDate).getTime() : new Date().getTime();
-  const duration = now - start;
+  const now = new Date().getTime();
+  const duration = now - start + initDuration;
 
+  return duration;
+};
+
+export const formatDuration = duration => {
   const seconds = Math.floor((duration / 1000) % 60);
   const minutes = Math.floor((duration / (1000 * 60)) % 60);
 

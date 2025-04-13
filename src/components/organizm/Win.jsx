@@ -1,75 +1,84 @@
 import { useEffect, useState } from 'react';
-import { calculateAccuracy, calculateGameDuration } from '../../utils';
-import Button from '../atom/Button';
+import { useNavigate } from 'react-router';
+import { calculateAccuracy, formatDuration } from '../../utils';
+import { usePlayersStore } from '../../stores/usePlayersStore';
+import { useGameStore } from '../../stores/useGameStore';
 import StatsCard from '../molecule/StatsCard';
+import Button from '../atom/Button';
 
-function Win({ handleGameRestart, handleLevelChange, stats }) {
-  const [topResults, setTopResults] = useState([]);
+function Win() {
+  const navigate = useNavigate();
+
+  const players = usePlayersStore(state => state.players);
+  const selectedLevel = useGameStore(state => state.selectedLevel);
+  const resetPlayersPartial = usePlayersStore(state => state.resetPlayersPartial);
+  const resetGameStorePartial = useGameStore(state => state.resetGameStorePartial);
+
+  const [winnerIndex, setWinnerIndex] = useState(null);
 
   useEffect(() => {
-    let topRes = [];
-    const storageRes = localStorage.getItem(`results-${stats.selectedLevel.grid}`);
+    const player1MatchedCards = players[0].score;
+    const player2MatchedCards = players[1].score;
 
-    if (storageRes) {
-      const parsedStorageRes = JSON.parse(storageRes);
-      const alreadyExists = parsedStorageRes.find(game => game.endedAt === stats.endedAt);
-      !alreadyExists && parsedStorageRes.push(stats);
+    const player1Moves = players[0].moves;
+    const player2Moves = players[1].moves;
 
-      const sortedRes = parsedStorageRes.sort((res1, res2) => (res1.misses > res2.misses ? 1 : -1));
-
-      topRes = sortedRes.length > 3 ? sortedRes.slice(0, 3) : sortedRes;
+    if (player1MatchedCards === player2MatchedCards) {
+      setWinnerIndex(player1Moves > player2Moves ? 1 : 0);
     } else {
-      topRes = [stats];
+      setWinnerIndex(player1MatchedCards > player2MatchedCards ? 0 : 1);
     }
+  }, [players]);
 
-    localStorage.setItem(`results-${stats.selectedLevel.grid}`, JSON.stringify(topRes));
-    setTopResults(topRes);
-  }, [stats]);
+  const handleReset = newGame => {
+    resetGameStorePartial();
+    resetPlayersPartial();
+    newGame && navigate('/');
+  };
 
-  return (
+  return typeof winnerIndex === 'number' ? (
     <div className="win-container">
       <div className="win-container-header">
         <img src="/graphics/level-win.gif" className="celebration-gif" width={150} height={150} alt="Celebration gif" />
         <div className="text-center">
           <img src="/graphics/trophy.svg" className="trophy-icon" width={60} height={60} alt="Trophy icon" />
-          <div>You win!</div>
+          <div>{players[winnerIndex].name} wins!</div>
           <div className="d-flex gap-10 align-items-center justify-content-center">
-            <StatsCard label="Moves" value={stats.moves} />
-            <StatsCard label="Time" value={calculateGameDuration(stats.startedAt, stats.endedAt)} />
+            <StatsCard label="Score" value={players[winnerIndex].score} />
+            <StatsCard label="Moves" value={players[winnerIndex].moves} />
           </div>
         </div>
         <img src="/graphics/level-win.gif" className="celebration-gif" width={150} height={150} alt="Celebration gif" />
       </div>
       <div className="win-container-table">
-        <div className="text-center">Your ranking for board size: {stats.selectedLevel.grid}</div>
+        <div className="text-center">Ranking for board size: {selectedLevel.grid}</div>
         <table>
           <thead>
             <tr>
-              <th>Rank</th>
+              <th></th>
+              <th>Player</th>
+              <th>Score</th>
               <th>Moves</th>
-              <th>Misses</th>
               <th>Accuracy</th>
               <th>Time</th>
             </tr>
           </thead>
           <tbody>
-            {topResults.length
-              ? topResults.map((row, index) => (
-                  <tr key={row.startedAt}>
+            {players.length
+              ? players.map((row, index) => (
+                  <tr key={row.name}>
                     <td>
                       <div className="d-flex gap-10 align-items-center justify-content-center">
-                        <img
-                          src={`/ranking-icons/${index + 1}-place.svg`}
-                          width={18}
-                          height={18}
-                          alt={`${index + 1} place icon`}
-                        />
+                        {winnerIndex === index ? (
+                          <img src={`/graphics/trophy.svg`} width={18} height={18} alt="winner icon" />
+                        ) : null}
                       </div>
                     </td>
+                    <td>{row.name}</td>
+                    <td>{row.score}</td>
                     <td>{row.moves}</td>
-                    <td>{row.misses}</td>
-                    <td>{calculateAccuracy(row.matchedCards, row.moves)}%</td>
-                    <td>{calculateGameDuration(row.startedAt, row.endedAt)}</td>
+                    <td>{calculateAccuracy(row.score, row.moves)}%</td>
+                    <td>{formatDuration(row.duration)}</td>
                   </tr>
                 ))
               : null}
@@ -77,12 +86,12 @@ function Win({ handleGameRestart, handleLevelChange, stats }) {
         </table>
 
         <div className="d-flex gap-10 align-items-center justify-content-center mt-2">
-          <Button className="primary-btn" onClick={handleGameRestart} name="Retry" />
-          <Button className="primary-btn" onClick={handleLevelChange} name="Change level" />
+          <Button onClick={() => handleReset()} name="Play again" />
+          <Button onClick={() => handleReset(true)} name="New game" />
         </div>
       </div>
     </div>
-  );
+  ) : null;
 }
 
 export default Win;
