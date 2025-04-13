@@ -48,7 +48,6 @@ function Game() {
 
   const handleSetPlayer = playerIndex => {
     setGameStartedAt(new Date().toISOString());
-    console.log('playerIndex', playerIndex);
     setNextPlayer(playerIndex);
   };
 
